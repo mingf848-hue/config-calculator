@@ -661,7 +661,7 @@
                             <span class="operator">+</span>
                             <span class="operator">*</span>
                             <span class="operator">×</span>
-                            <span class="operator">小数</span>
+                            <span class="operator">整数</span>
                         </div>
                     </div>
 
@@ -670,7 +670,7 @@
                         <label for="inputText" class="sr-only">配置清单输入框</label>
                         <textarea id="inputText" spellcheck="false" placeholder="站内信审核群：2*3+3
 存款渠道同步：2+2+2+2+
-其他任务：3+5+1.5"></textarea>
+其他任务：3+5+1"></textarea>
                     </div>
 
                     <div class="statusbar">
@@ -737,10 +737,20 @@
         const clearBtn = document.getElementById('clearBtn');
         const sampleBtn = document.getElementById('sampleBtn');
         const toast = document.getElementById('toast');
-        const sampleText = '站内信审核群：2*3+3\n存款渠道同步：2+2+2+2+\n其他任务：3+5+1.5';
-        const expressionPattern = /\d+(?:\.\d+)?(?:\s*[+＋*＊×]\s*\d+(?:\.\d+)?)*\s*[+＋*＊×]?/g;
-        const dateTitlePattern = /^(?:\d{1,2}\s*月\s*\d{1,2}\s*日(?:\s+[\u4e00-\u9fa5A-Za-z][\u4e00-\u9fa5A-Za-z0-9 _-]*)?|\d{1,2}[./-]\d{1,2}\s+[\u4e00-\u9fa5A-Za-z][\u4e00-\u9fa5A-Za-z0-9 _-]*)$/;
-        const operatorPattern = /[+＋*＊×]/;
+        const sampleText = '站内信审核群：2*3+3\n存款渠道同步：2+2+2+2+\n其他任务：3+5+1';
+        const expressionPattern = /\d+(?:\s*[+＋*＊×]\s*\d+)*\s*[+＋*＊×]?/g;
+        const ignoredNumberPatterns = [
+            /(?:\d{2,4}\s*年\s*)?\d{1,2}\s*月(?:\s*\d{1,2}\s*(?:日|号)?)?/g,
+            /\b\d{4}[./-]\d{1,2}[./-]\d{1,2}\b/g,
+            /(^|[^\d])\d{1,2}[/-]\d{1,2}(?=\s*($|[\u4e00-\u9fa5A-Za-z]))/g,
+            /^\s*\d{1,2}\.\d{1,2}(?=\s*($|[\u4e00-\u9fa5A-Za-z]))/g,
+            /\b\d+\.\d+\b/g,
+            /\b\d{1,2}\s*[:：]\s*\d{2}(?:\s*[:：]\s*\d{2})?\b/g,
+            /(?:上午|下午|凌晨|晚上)?\d{1,2}\s*点(?:\s*\d{1,2}\s*分)?/g,
+            /\b(?:19|20)\d{2}\b/g,
+            /\b[A-Za-z][A-Za-z0-9_-]*\d+[A-Za-z0-9_-]*\b/g,
+            /第\s*\d+\s*(?:期|组|页|版|次|轮)/g
+        ];
         let toastTimer = 0;
 
         function calculateSum() {
@@ -788,15 +798,13 @@
         }
 
         function getCalculationText(line) {
-            const trimmed = line.trim();
+            const normalizedLine = line.normalize('NFKC');
 
-            if (!operatorPattern.test(trimmed) && dateTitlePattern.test(trimmed)) {
-                return '';
-            }
-
-            return line
-                .replace(/\d{1,2}\s*月\s*\d{1,2}\s*日/g, ' ')
-                .replace(/\b\d{1,2}[./-]\d{1,2}(?=\s+[\u4e00-\u9fa5A-Za-z])/g, ' ');
+            return ignoredNumberPatterns.reduce((text, pattern) => (
+                text.replace(pattern, (match, prefix) => (
+                    typeof prefix === 'string' ? `${prefix} ` : ' '
+                ))
+            ), normalizedLine);
         }
 
         function evaluateExpression(rawExpression) {
