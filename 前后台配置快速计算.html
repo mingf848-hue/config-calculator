@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前后台配置快速计算</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #f4f6f8;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+            --text: #1f2933;
+            --muted: #667085;
+            --line: #d7dde5;
+            --primary: #2563eb;
+            --primary-strong: #1d4ed8;
+            --success: #0f766e;
+            --warning: #b45309;
+            --shadow: 0 18px 45px rgba(31, 41, 51, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            min-height: 100vh;
+            padding: 28px;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        button,
+        textarea {
+            font: inherit;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1120px;
+            margin: 0 auto;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            background: var(--surface);
+            padding: 24px 28px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .header-copy {
+            min-width: 0;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            line-height: 1.2;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .subtitle {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 0.98rem;
+        }
+
+        .support-tags {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 8px;
+            min-width: 220px;
+        }
+
+        .support-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 32px;
+            padding: 5px 10px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--surface-soft);
+            color: #344054;
+            font-size: 0.88rem;
+            white-space: nowrap;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+            gap: 18px;
+            padding: 18px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 14px;
+            }
+
+            header {
+                flex-direction: column;
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .support-tags {
+                justify-content: flex-start;
+                min-width: 0;
+            }
+
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-section, .result-section {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 18px;
+            min-width: 0;
+        }
+
+        .result-section {
+            background: var(--surface-soft);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            color: var(--text);
+        }
+
+        .section-title h2 {
+            font-size: 1.08rem;
+            line-height: 1.3;
+        }
+
+        .section-title i {
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: var(--primary);
+            background: #eff6ff;
+        }
+
+        label {
+            display: block;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 338px;
+            padding: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            resize: vertical;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            background: #fbfdff;
+            color: var(--text);
+            line-height: 1.65;
+        }
+
+        textarea::placeholder {
+            color: #98a2b3;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+            background: #ffffff;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        @media (max-width: 520px) {
+            .buttons {
+                flex-direction: column;
+            }
+        }
+
+        button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 44px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+            background: var(--surface);
+            color: #344054;
+            border: 1px solid #cbd5e1;
+        }
+
+        button:hover {
+            background: #f8fafc;
+            border-color: #98a2b3;
+        }
+
+        button:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .calculate-btn {
+            flex: 1.2;
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .calculate-btn:hover {
+            background: var(--primary-strong);
+            border-color: var(--primary-strong);
+        }
+
+        .clear-btn {
+            flex: 0.8;
+        }
+
+        .result-container {
+            display: grid;
+            gap: 18px;
+        }
+
+        .total-card {
+            padding: 20px;
+            border-radius: 8px;
+            background: #ffffff;
+            border: 1px solid var(--line);
+        }
+
+        .total-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .line-count {
+            color: var(--success);
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        .total-value {
+            font-size: clamp(2.35rem, 7vw, 3.9rem);
+            line-height: 1.05;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 12px;
+            word-break: break-word;
+        }
+
+        .calculation-details {
+            text-align: left;
+        }
+
+        .detail-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #344054;
+            margin-bottom: 10px;
+            font-size: 0.98rem;
+            font-weight: 600;
+        }
+
+        #lineResults {
+            display: grid;
+            gap: 8px;
+            max-height: 360px;
+            overflow: auto;
+            padding-right: 2px;
+        }
+
+        .line-result {
+            padding: 12px;
+            background: #ffffff;
+            border-radius: 8px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            border: 1px solid var(--line);
+        }
+
+        .line-main {
+            min-width: 0;
+        }
+
+        .line-text {
+            color: #344054;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+
+        .line-formula {
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 0.82rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .line-sum {
+            font-weight: 600;
+            color: var(--success);
+            white-space: nowrap;
+        }
+
+        footer {
+            text-align: center;
+            padding: 14px 20px;
+            color: var(--muted);
+            font-size: 0.9rem;
+            background: var(--surface);
+            border-top: 1px solid var(--line);
+        }
+
+        .info-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 14px;
+            font-size: 0.9rem;
+            color: var(--warning);
+        }
+
+        .info-box i {
+            margin-top: 3px;
+            color: var(--warning);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-copy">
+                <h1>前后台配置快速计算</h1>
+                <p class="subtitle">输入配置事项和数字表达式，自动汇总每行结果。</p>
+            </div>
+            <div class="support-tags" aria-label="支持的运算">
+                <span class="support-tag"><i class="fas fa-plus"></i> 加法</span>
+                <span class="support-tag"><i class="fas fa-xmark"></i> 乘法</span>
+                <span class="support-tag"><i class="fas fa-list-check"></i> 逐行汇总</span>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="input-section">
+                <div class="section-title">
+                    <i class="fas fa-edit"></i>
+                    <h2>配置内容</h2>
+                </div>
+                <label for="inputText" class="sr-only">配置内容</label>
+                <textarea id="inputText" placeholder="站内信审核群：2*3+3
+存款渠道同步：2+2+2+2+
+其他任务：3+5+1.5"></textarea>
+
+                <div class="buttons">
+                    <button type="button" class="calculate-btn" id="calculateBtn">
+                        <i class="fas fa-calculator"></i> 计算总和
+                    </button>
+                    <button type="button" class="clear-btn" id="clearBtn">
+                        <i class="fas fa-eraser"></i> 清空文本
+                    </button>
+                </div>
+
+                <div class="info-box">
+                    <i class="fas fa-circle-info"></i>
+                    <div>支持 <strong>2*3</strong>、<strong>2*3+3</strong>、<strong>2+2+2+</strong>，散落数字会按原逻辑相加。</div>
+                </div>
+            </div>
+
+            <div class="result-section">
+                <div class="section-title">
+                    <i class="fas fa-calculator"></i>
+                    <h2>计算结果</h2>
+                </div>
+
+                <div class="result-container">
+                    <div class="total-card">
+                        <div class="total-label">
+                            <span>总和</span>
+                            <span id="lineCount" class="line-count">0 行</span>
+                        </div>
+                        <div id="totalValue" class="total-value" aria-live="polite">0.00</div>
+                    </div>
+
+                    <div class="calculation-details">
+                        <div class="detail-title">
+                            <i class="fas fa-list"></i> 明细
+                        </div>
+                        <div id="lineResults" aria-live="polite"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>本地快速计算工具</p>
+        </footer>
+    </div>
+
+    <script>
+        const inputText = document.getElementById('inputText');
+        const totalValue = document.getElementById('totalValue');
+        const lineResults = document.getElementById('lineResults');
+        const lineCount = document.getElementById('lineCount');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const expressionPattern = /\d+(?:\.\d+)?(?:\s*[+＋*＊×]\s*\d+(?:\.\d+)?)*\s*[+＋*＊×]?/g;
+
+        function calculateSum() {
+            const lines = inputText.value.split('\n');
+            let totalSum = 0;
+            let validLineCount = 0;
+
+            lineResults.replaceChildren();
+
+            lines.forEach((line) => {
+                if (line.trim() === '') return;
+
+                const expressions = getLineExpressions(line);
+                if (expressions.length === 0) return;
+
+                const lineSum = expressions.reduce((sum, item) => sum + item.value, 0);
+                totalSum += lineSum;
+                validLineCount += 1;
+                renderLineResult(line, expressions, lineSum);
+            });
+
+            totalValue.textContent = formatNumber(totalSum);
+            lineCount.textContent = `${validLineCount} 行`;
+
+            if (validLineCount === 0) {
+                renderEmptyResult();
+            }
+        }
+
+        function getLineExpressions(line) {
+            const matches = line.match(expressionPattern) || [];
+
+            return matches
+                .map((raw) => evaluateExpression(raw))
+                .filter(Boolean);
+        }
+
+        function evaluateExpression(rawExpression) {
+            const expression = rawExpression
+                .replace(/＋/g, '+')
+                .replace(/[＊×]/g, '*')
+                .replace(/\s+/g, '')
+                .replace(/[+*]+$/g, '');
+
+            if (!expression) return null;
+
+            const value = expression
+                .split('+')
+                .filter(Boolean)
+                .reduce((sum, term) => {
+                    const product = term
+                        .split('*')
+                        .filter(Boolean)
+                        .reduce((result, factor) => result * Number(factor), 1);
+
+                    return sum + product;
+                }, 0);
+
+            if (!Number.isFinite(value)) return null;
+
+            return {
+                expression,
+                value
+            };
+        }
+
+        function renderLineResult(line, expressions, lineSum) {
+            const row = document.createElement('div');
+            row.className = 'line-result';
+
+            const main = document.createElement('div');
+            main.className = 'line-main';
+
+            const text = document.createElement('div');
+            text.className = 'line-text';
+            text.title = line;
+            text.textContent = line;
+
+            const formula = document.createElement('div');
+            formula.className = 'line-formula';
+            formula.textContent = expressions
+                .map((item) => `${item.expression}=${formatNumber(item.value)}`)
+                .join(' + ');
+
+            const sum = document.createElement('div');
+            sum.className = 'line-sum';
+            sum.textContent = formatNumber(lineSum);
+
+            main.append(text, formula);
+            row.append(main, sum);
+            lineResults.append(row);
+        }
+
+        function renderEmptyResult() {
+            const row = document.createElement('div');
+            row.className = 'line-result';
+
+            const main = document.createElement('div');
+            main.className = 'line-main';
+
+            const text = document.createElement('div');
+            text.className = 'line-text';
+            text.textContent = '暂无计算结果';
+
+            main.append(text);
+            row.append(main);
+            lineResults.append(row);
+        }
+
+        function formatNumber(value) {
+            return value.toFixed(2);
+        }
+
+        function clearText() {
+            inputText.value = '';
+            calculateSum();
+            inputText.focus();
+        }
+
+        calculateBtn.addEventListener('click', calculateSum);
+        clearBtn.addEventListener('click', clearText);
+        inputText.addEventListener('input', calculateSum);
+        calculateSum();
+    </script>
+</body>
+</html>
